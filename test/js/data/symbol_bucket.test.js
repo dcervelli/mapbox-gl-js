@@ -35,7 +35,6 @@ test('SymbolBucket', function(t) {
             tileExtent: 4096
         });
         bucket.textFeatures = ['abcde'];
-        bucket.features = [feature];
         t.ok(bucket, 'bucketSetup');
         return bucket;
     }
@@ -45,13 +44,13 @@ test('SymbolBucket', function(t) {
 
     // add feature from bucket A
     var a = JSON.stringify(collision);
-    t.equal(bucketA.addFeatures(collision, stacks), undefined);
+    t.equal(bucketA.addFeatures([feature], collision, stacks), undefined);
     var b = JSON.stringify(collision);
     t.notEqual(a, b, 'places feature');
 
     // add same feature from bucket B
     a = JSON.stringify(collision);
-    t.equal(bucketB.addFeatures(collision, stacks), undefined);
+    t.equal(bucketB.addFeatures([feature], collision, stacks), undefined);
     b = JSON.stringify(collision);
     t.equal(a, b, 'detects collision and does not place feature');
 
