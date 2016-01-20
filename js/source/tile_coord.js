@@ -20,7 +20,7 @@ function TileCoord(z, x, y, w) {
     // calculate id
     w *= 2;
     if (w < 0) w = w * -1 - 1;
-    var dim = 1 << this.z;
+    var dim = (1 << this.z) * 2;
     this.id = ((dim * dim * w + dim * this.y + this.x) * 32) + this.z;
 }
 
@@ -38,7 +38,7 @@ TileCoord.prototype.toCoordinate = function() {
 
 // Parse a packed integer id into a TileCoord object
 TileCoord.fromID = function(id) {
-    var z = id % 32, dim = 1 << z;
+    var z = id % 32, dim = (1 << z) * 2;
     var xy = ((id - z) / 32);
     var x = xy % dim, y = ((xy - x) / dim) % dim;
     var w = Math.floor(xy / (dim * dim));
@@ -148,14 +148,15 @@ function scanTriangle(a, b, c, ymin, ymax, scanLine) {
 
 TileCoord.cover = function(z, bounds, actualZ) {
     var tiles = 1 << z;
+    var xTiles = tiles * 2;
     var t = {};
 
     function scanLine(x0, x1, y) {
         var x, wx, coord;
         if (y >= 0 && y <= tiles) {
             for (x = x0; x < x1; x++) {
-                wx = (x % tiles + tiles) % tiles;
-                coord = new TileCoord(actualZ, wx, y, Math.floor(x / tiles));
+                wx = (x % xTiles + xTiles) % xTiles;
+                coord = new TileCoord(actualZ, wx, y, Math.floor(x / xTiles));
                 t[coord.id] = coord;
             }
         }

@@ -27,7 +27,9 @@ function Transform(minZoom, maxZoom) {
     this._minZoom = minZoom || 0;
     this._maxZoom = maxZoom || 22;
 
-    this.latRange = [-85.05113, 85.05113];
+    // this.latRange = [-85.05113, 85.05113];
+    this.lngRange = [-180, 180];
+    this.latRange = [-90, 90];
 
     this.width = 0;
     this.height = 0;
@@ -167,7 +169,8 @@ Transform.prototype = {
      * @private
      */
     lngX: function(lng, worldSize) {
-        return (180 + lng) * (worldSize || this.worldSize) / 360;
+        // return (180 + lng) * (worldSize || this.worldSize) / 360;
+        return (180 + lng) * ((worldSize || this.worldSize) * 2) / 360;
     },
     /**
      * latitude to absolute y coord
@@ -177,16 +180,18 @@ Transform.prototype = {
      * @private
      */
     latY: function(lat, worldSize) {
-        var y = 180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
-        return (180 - y) * (worldSize || this.worldSize) / 360;
+        // var y = 180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+        var y = lat;
+        return (90 - y) * (worldSize || this.worldSize) / 180;
     },
 
     xLng: function(x, worldSize) {
-        return x * 360 / (worldSize || this.worldSize) - 180;
+        return x * 360 / ((worldSize || this.worldSize) * 2) - 180;
     },
     yLat: function(y, worldSize) {
-        var y2 = 180 - y * 360 / (worldSize || this.worldSize);
-        return 360 / Math.PI * Math.atan(Math.exp(y2 * Math.PI / 180)) - 90;
+        var y2 = 90 - y * 180 / (worldSize || this.worldSize);
+        return y2;
+        // return 360 / Math.PI * Math.atan(Math.exp(y2 * Math.PI / 180)) - 90;
     },
 
     panBy: function(offset) {
