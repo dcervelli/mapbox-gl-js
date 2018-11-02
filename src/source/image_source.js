@@ -152,7 +152,7 @@ class ImageSource extends Evented implements Source {
             if (err) {
                 this.fire(new ErrorEvent(err));
             } else if (image) {
-                this.image = browser.getImageData(image);
+                this.image = image;
                 this.texture = null;
                 this.fire(new Event('data', {dataType:'source', sourceDataType: 'content'}));
             }
