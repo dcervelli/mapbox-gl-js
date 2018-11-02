@@ -87,7 +87,7 @@ class ImageSource extends Evented implements Source {
     dispatcher: Dispatcher;
     map: Map;
     texture: Texture;
-    image: ImageData;
+    image: HTMLImageElement;
     centerCoord: Coordinate;
     tileID: CanonicalTileID;
     _boundsArray: RasterBoundsArray;
@@ -123,7 +123,7 @@ class ImageSource extends Evented implements Source {
             if (err) {
                 this.fire(new ErrorEvent(err));
             } else if (image) {
-                this.image = browser.getImageData(image);
+                this.image = image;
                 this._finishLoading();
             }
         });
