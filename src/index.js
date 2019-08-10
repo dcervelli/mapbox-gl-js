@@ -22,6 +22,7 @@ import config from './util/config';
 import {setRTLTextPlugin} from './source/rtl_text_plugin';
 import WorkerPool from './util/worker_pool';
 import {clearTileCache} from './util/tile_request_cache';
+import {geoJsonToGeobuffer} from '@acme/geobuffer';
 
 const exported = {
     version,
@@ -117,6 +118,10 @@ const exported = {
      */
     clearStorage(callback?: (err: ?Error) => void) {
         clearTileCache(callback);
+    },
+
+    geoJsonToGeobuffer(geoJson) {
+        return geoJsonToGeobuffer(geoJson);
     },
 
     workerUrl: ''

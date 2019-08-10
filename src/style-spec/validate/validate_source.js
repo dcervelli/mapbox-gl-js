@@ -1,9 +1,8 @@
-
-import ValidationError from '../error/validation_error';
-import { unbundle } from '../util/unbundle_jsonlint';
-import validateObject from './validate_object';
-import validateEnum from './validate_enum';
-import validateExpression from './validate_expression';
+import ValidationError from "../error/validation_error";
+import { unbundle } from "../util/unbundle_jsonlint";
+import validateObject from "./validate_object";
+import validateEnum from "./validate_enum";
+import validateExpression from "./validate_expression";
 
 export default function validateSource(options) {
     const value = options.value;
@@ -19,73 +18,88 @@ export default function validateSource(options) {
     let errors;
 
     switch (type) {
-    case 'vector':
-    case 'raster':
-    case 'raster-dem':
-        errors = validateObject({
-            key,
-            value,
-            valueSpec: styleSpec[`source_${type.replace('-', '_')}`],
-            style: options.style,
-            styleSpec
-        });
-        return errors;
+        case "vector":
+        case "raster":
+        case "raster-dem":
+            errors = validateObject({
+                key,
+                value,
+                valueSpec: styleSpec[`source_${type.replace("-", "_")}`],
+                style: options.style,
+                styleSpec,
+            });
+            return errors;
 
-    case 'geojson':
-        errors = validateObject({
-            key,
-            value,
-            valueSpec: styleSpec.source_geojson,
-            style,
-            styleSpec
-        });
-        if (value.cluster) {
-            for (const prop in value.clusterProperties) {
-                const [operator, mapExpr] = value.clusterProperties[prop];
-                const reduceExpr = typeof operator === 'string' ? [operator, ['accumulated'], ['get', prop]] : operator;
+        case "geojson":
+            errors = validateObject({
+                key,
+                value,
+                valueSpec: styleSpec.source_geojson,
+                style,
+                styleSpec,
+            });
+            if (value.cluster) {
+                for (const prop in value.clusterProperties) {
+                    const [operator, mapExpr] = value.clusterProperties[prop];
+                    const reduceExpr =
+                        typeof operator === "string" ? [operator, ["accumulated"], ["get", prop]] : operator;
 
-                errors.push(...validateExpression({
-                    key: `${key}.${prop}.map`,
-                    value: mapExpr,
-                    expressionContext: 'cluster-map'
-                }));
-                errors.push(...validateExpression({
-                    key: `${key}.${prop}.reduce`,
-                    value: reduceExpr,
-                    expressionContext: 'cluster-reduce'
-                }));
+                    errors.push(
+                        ...validateExpression({
+                            key: `${key}.${prop}.map`,
+                            value: mapExpr,
+                            expressionContext: "cluster-map",
+                        })
+                    );
+                    errors.push(
+                        ...validateExpression({
+                            key: `${key}.${prop}.reduce`,
+                            value: reduceExpr,
+                            expressionContext: "cluster-reduce",
+                        })
+                    );
+                }
             }
-        }
-        return errors;
+            return errors;
 
-    case 'video':
-        return validateObject({
-            key,
-            value,
-            valueSpec: styleSpec.source_video,
-            style,
-            styleSpec
-        });
+        case "geobuffer":
+            return [];
 
-    case 'image':
-        return validateObject({
-            key,
-            value,
-            valueSpec: styleSpec.source_image,
-            style,
-            styleSpec
-        });
+        case "video":
+            return validateObject({
+                key,
+                value,
+                valueSpec: styleSpec.source_video,
+                style,
+                styleSpec,
+            });
 
-    case 'canvas':
-        return [new ValidationError(key, null, `Please use runtime APIs to add canvas sources, rather than including them in stylesheets.`, 'source.canvas')];
+        case "image":
+            return validateObject({
+                key,
+                value,
+                valueSpec: styleSpec.source_image,
+                style,
+                styleSpec,
+            });
 
-    default:
-        return validateEnum({
-            key: `${key}.type`,
-            value: value.type,
-            valueSpec: {values: ['vector', 'raster', 'raster-dem', 'geojson', 'video', 'image']},
-            style,
-            styleSpec
-        });
+        case "canvas":
+            return [
+                new ValidationError(
+                    key,
+                    null,
+                    `Please use runtime APIs to add canvas sources, rather than including them in stylesheets.`,
+                    "source.canvas"
+                ),
+            ];
+
+        default:
+            return validateEnum({
+                key: `${key}.type`,
+                value: value.type,
+                valueSpec: { values: ["vector", "raster", "raster-dem", "geojson", "geobuffer", "video", "image"] },
+                style,
+                styleSpec,
+            });
     }
 }

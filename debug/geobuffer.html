@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapbox GL JS debug page</title>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel='stylesheet' href='/dist/mapbox-gl.css' />
+    <style>
+        body { margin: 0; padding: 0; }
+        html, body, #map { height: 100%; }
+    </style>
+</head>
+
+<body>
+<div id='map'></div>
+
+<script src='/dist/mapbox-gl-dev.js'></script>
+<script src='/debug/access_token_generated.js'></script>
+<script>
+
+const lat = 37.562984;
+const lng = -122.514426;
+const d = 0.001;
+
+const gj = {
+    type: "FeatureCollection",
+    features: [
+        {
+            type: "Feature",
+            geometry: {
+                type: "Polygon",
+                coordinates: [[[lng - d, lat], [lng + d, lat], [lng + d, lat + d]]]
+            }
+        }
+    ]
+}
+
+const gb = mapboxgl.geoJsonToGeobuffer(gj);
+
+var imageStyle = {
+    "version": 8,
+    "sources": {
+        "satellite": {
+            "type": "raster",
+            "url": "mapbox://mapbox.satellite",
+            "tileSize": 256
+        },
+        "gb-source": {
+            "type": "geobuffer",
+            "data": gb
+        },
+    },
+    "layers": [{
+        "id": "background",
+        "type": "background",
+        "paint": {
+            "background-color": "rgb(128,128,128)"
+        }
+    }, {
+        "id": "satellite",
+        "type": "raster",
+        "source": "satellite"
+    }, {
+        "id": "gb-layer",
+        "type": "line",
+        "source": "gb-source",
+        layout: {
+            'line-cap': 'round',
+            'line-join': 'round'
+        },
+        paint: {
+            'line-color': '#F00',
+            'line-width': 4
+        },
+    }]
+};
+
+var map = new mapboxgl.Map({
+    container: 'map',
+    minZoom: 14,
+    zoom: 17,
+    center: [-122.514426, 37.562984],
+    bearing: -96,
+    style: imageStyle,
+    hash: false
+});
+
+</script>
+</body>
+</html>

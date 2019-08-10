@@ -6,6 +6,7 @@ import StyleLayerIndex from '../style/style_layer_index';
 import VectorTileWorkerSource from './vector_tile_worker_source';
 import RasterDEMTileWorkerSource from './raster_dem_tile_worker_source';
 import GeoJSONWorkerSource from './geojson_worker_source';
+import GeobufferWorkerSource from './geobuffer_worker_source';
 import assert from 'assert';
 import { plugin as globalRTLTextPlugin } from './rtl_text_plugin';
 import { enforceCacheSizeLimit } from '../util/tile_request_cache';
@@ -43,7 +44,8 @@ export default class Worker {
 
         this.workerSourceTypes = {
             vector: VectorTileWorkerSource,
-            geojson: GeoJSONWorkerSource
+            geojson: GeoJSONWorkerSource,
+            geobuffer: GeobufferWorkerSource
         };
 
         // [mapId][sourceType][sourceName] => worker source instance
