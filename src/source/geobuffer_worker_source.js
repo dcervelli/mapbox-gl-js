@@ -10,6 +10,7 @@ import Supercluster from 'supercluster';
 import geojsonvt from 'geojson-vt';
 import assert from 'assert';
 import VectorTileWorkerSource from './vector_tile_worker_source';
+import { convertGeobufferToVt } from "@acme/geobuffer"
 import { createExpression } from '../style-spec/expression';
 
 import type {
@@ -137,56 +138,47 @@ class GeobufferWorkerSource extends VectorTileWorkerSource {
         delete this._pendingCallback;
         delete this._pendingLoadDataParams;
 
-        const perf = (params && params.request && params.request.collectResourceTiming) ?
-            new performance.Performance(params.request) : false;
+        const err = undefined;
+        let data = params.data;
+        if (err || !data) {
+            return callback(err);
+        } else if (typeof data !== 'object') {
+            return callback(new Error(`Input data given to '${params.source}' is not a valid GeoJSON object.`));
+        } else {
+            // geobuffer -> gj
+            const converted = convertGeobufferToVt(data, {
+                maxZoom: 14,
+                tolerance: 3,
+                extent: 4096,
+            });
+            const lat = 37.562984;
+            const lng = -122.514426;
+            const d = 0.001;
 
-        this.loadGeoJSON(params, (err: ?Error, data: ?Object) => {
-            if (err || !data) {
+            // data = {
+            //     type: "FeatureCollection",
+            //     features: [
+            //         {
+            //             type: "Feature",
+            //             geometry: {
+            //                 type: "Polygon",
+            //                 coordinates: [[[lng - d, lat], [lng + d, lat], [lng + d, lat + d], [lng - d, lat]]]
+            //             }
+            //         }
+            //     ]
+            // }
+            // rewind(data, true);
+
+            try {
+                params.geojsonVtOptions.preconverted = true;
+                this._geoJSONIndex = geojsonvt(converted, params.geojsonVtOptions);
+            } catch (err) {
                 return callback(err);
-            } else if (typeof data !== 'object') {
-                return callback(new Error(`Input data given to '${params.source}' is not a valid GeoJSON object.`));
-            } else {
-                // geobuffer -> gj
-                console.log("in load data", data);
-                const lat = 37.562984;
-                const lng = -122.514426;
-                const d = 0.001;
-
-                data = {
-                    type: "FeatureCollection",
-                    features: [
-                        {
-                            type: "Feature",
-                            geometry: {
-                                type: "Polygon",
-                                coordinates: [[[lng - d, lat], [lng + d, lat], [lng + d, lat + d]]]
-                            }
-                        }
-                    ]
-                }
-                rewind(data, true);
-
-                try {
-                    this._geoJSONIndex = geojsonvt(data, params.geojsonVtOptions);
-                } catch (err) {
-                    return callback(err);
-                }
-
-                this.loaded = {};
-
-                const result = {};
-                if (perf) {
-                    const resourceTimingData = perf.finish();
-                    // it's necessary to eval the result of getEntriesByName() here via parse/stringify
-                    // late evaluation in the main thread causes TypeError: illegal invocation
-                    if (resourceTimingData) {
-                        result.resourceTiming = {};
-                        result.resourceTiming[params.source] = JSON.parse(JSON.stringify(resourceTimingData));
-                    }
-                }
-                callback(null, result);
             }
-        });
+            this.loaded = {};
+            const result = {};
+            callback(null, result);
+        }
     }
 
     /**
@@ -236,36 +228,6 @@ class GeobufferWorkerSource extends VectorTileWorkerSource {
         } else {
             return this.loadTile(params, callback);
         }
-    }
-
-    /**
-     * Fetch and parse GeoJSON according to the given params.  Calls `callback`
-     * with `(err, data)`, where `data` is a parsed GeoJSON object.
-     *
-     * GeoJSON is loaded and parsed from `params.url` if it exists, or else
-     * expected as a literal (string or object) `params.data`.
-     *
-     * @param params
-     * @param [params.url] A URL to the remote GeoJSON data.
-     * @param [params.data] Literal GeoJSON data. Must be provided if `params.url` is not.
-     */
-    loadGeoJSON(params: LoadGeoJSONParameters, callback: ResponseCallback<Object>) {
-        return callback(null, params.data);
-        // Because of same origin issues, urls must either include an explicit
-        // origin or absolute path.
-        // ie: /foo/bar.json or http://example.com/bar.json
-        // but not ../foo/bar.json
-        // if (params.request) {
-        //     getJSON(params.request, callback);
-        // } else if (typeof params.data === 'string') {
-        //     try {
-        //         return callback(null, JSON.parse(params.data));
-        //     } catch (e) {
-        //         return callback(new Error(`Input data given to '${params.source}' is not a valid GeoJSON object.`));
-        //     }
-        // } else {
-        //     return callback(new Error(`Input data given to '${params.source}' is not a valid GeoJSON object.`));
-        // }
     }
 
     removeSource(params: {source: string}, callback: Callback<mixed>) {

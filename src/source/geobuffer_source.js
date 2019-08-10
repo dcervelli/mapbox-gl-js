@@ -66,7 +66,6 @@ class GeobufferSource extends Evented implements Source {
         this.setEventedParent(eventedParent);
 
         this._data = options.data;
-        console.log("geobuffer", this._data);
         this._options = extend({}, options);
 
         this._collectResourceTiming = options.collectResourceTiming;
