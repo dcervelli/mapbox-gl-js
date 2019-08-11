@@ -52,8 +52,10 @@ class Actor {
             sourceMapId: this.mapId,
             type,
             id: String(id),
-            data: serialize(data, buffers)
-        }, buffers);
+            // data: serialize(data, buffers)
+            data
+        // }, buffers);
+        }, []);
         if (callback) {
             return {
                 cancel: () => {

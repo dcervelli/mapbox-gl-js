@@ -151,6 +151,26 @@ class GeobufferSource extends Evented implements Source {
         this.load();
     }
 
+    setData(data) {
+        this._data = data;
+        this.fire(new Event('dataloading', {dataType: 'source'}));
+        this._updateWorkerData((err) => {
+            if (err) {
+                this.fire(new ErrorEvent(err));
+                return;
+            }
+
+            const data: Object = { dataType: 'source', sourceDataType: 'content' };
+            if (this._collectResourceTiming && this._resourceTiming && (this._resourceTiming.length > 0)) {
+                data.resourceTiming = this._resourceTiming;
+                this._resourceTiming = [];
+            }
+            this.fire(new Event('data', data));
+        });
+
+        return this;
+    }
+
     loadTile(tile: Tile, callback: Callback<void>) {
         const message = tile.workerID === undefined ? 'loadTile' : 'reloadTile';
         const params = {

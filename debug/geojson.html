@@ -39,7 +39,7 @@
             const bayZips = await (await fetch("./bay-zips.json")).json();
             const docLand = await (await fetch("./doc-land.json")).json();
             console.log("done loading");
-            window.data = [mapboxgl.geoJsonToGeobuffer(bayZips), mapboxgl.geoJsonToGeobuffer(docLand)];
+            window.data = [(bayZips), (docLand)];
             return window.data;
         }
 
@@ -55,7 +55,7 @@
                     //     "tileSize": 256
                     // },
                     "gb-source": {
-                        "type": "geobuffer",
+                        "type": "geojson",
                         "data": data
                     },
                 },
